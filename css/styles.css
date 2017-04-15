@@ -70,3 +70,8 @@ nav ul li {
 nav #user-account {
     float: right;
 }
+
+.small-text {
+    font-size: 75%;
+    font-style: italic;
+}

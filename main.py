@@ -12,6 +12,9 @@ class BlogHandler(webapp2.RequestHandler):
     def get_posts(self, limit, offset):
         """ Get all posts ordered by creation date (descending) """
         query = Post.all().order('-created')
+
+        # This query can be done two different ways, correct?
+#        query = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
         return query.fetch(limit=limit, offset=offset)
 
     def get_posts_by_user(self, user, limit, offset):
@@ -21,7 +24,9 @@ class BlogHandler(webapp2.RequestHandler):
         """
 
         # TODO - filter the query so that only posts by the given user
-        return None
+        query = Post.all().order('-created')
+        query.filter('author =', user)
+        return query.fetch(limit=limit, offset=offset)
 
     def get_user_by_name(self, username):
         """ Get a user object from the db, based on their username """
@@ -275,14 +280,17 @@ class LoginHandler(BlogHandler):
 
         # get the user from the database
         user = self.get_user_by_name(submitted_username)
+        error = {}
 
         if not user:
-            self.render_login_form(error="Invalid username")
+            error['user_error'] = "Invalid username"
+            self.render_login_form(error=error)
         elif hashutils.valid_pw(submitted_username, submitted_password, user.pw_hash):
             self.login_user(user)
             self.redirect('/blog/newpost')
         else:
-            self.render_login_form(error="Invalid password")
+            error['password_error'] = "Invalid password"
+            self.render_login_form(error=error)
 
 class LogoutHandler(BlogHandler):
 
